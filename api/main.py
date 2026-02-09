@@ -1,6 +1,6 @@
+import numpy as np
 from fastapi import FastAPI
 from pydantic import BaseModel
-import numpy as np
 
 app = FastAPI(title="Smart Ambulance Risk API")
 
@@ -13,9 +13,9 @@ def root():
         "predict": "/predict"
     }
 
-# -------------------------
+
 # Input schema
-# -------------------------
+
 class VitalsInput(BaseModel):
     heart_rate: list[float]
     spo2: list[float]
@@ -23,9 +23,9 @@ class VitalsInput(BaseModel):
     bp_dia: list[float]
     motion: list[float]
 
-# -------------------------
+
 # Utility logic (simplified)
-# -------------------------
+
 def compute_anomaly(hr, spo2):
     hr_slope = np.polyfit(range(len(hr)), hr, 1)[0]
     spo2_slope = np.polyfit(range(len(spo2)), spo2, 1)[0]
@@ -35,6 +35,7 @@ def compute_anomaly(hr, spo2):
 
     return bool(anomaly_flag), float(anomaly_score)
 
+
 def compute_confidence(motion, spo2):
     conf = 1.0
     if max(motion) > 1.0:
@@ -42,6 +43,7 @@ def compute_confidence(motion, spo2):
     if any(np.isnan(spo2)):
         conf -= 0.4
     return max(conf, 0.2)
+
 
 def compute_risk(hr, spo2, bp_sys, conf):
     risk = 0.0
@@ -54,9 +56,9 @@ def compute_risk(hr, spo2, bp_sys, conf):
 
     return min(risk * conf * 100, 100)
 
-# -------------------------
+
 # API endpoint
-# -------------------------
+
 @app.post("/predict")
 def predict(vitals: VitalsInput):
     hr = np.array(vitals.heart_rate)
